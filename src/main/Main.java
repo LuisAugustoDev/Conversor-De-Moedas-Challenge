@@ -12,12 +12,18 @@ import java.net.http.HttpResponse;
 import java.util.Scanner;
 
 public class Main {
-    private static HttpResponse<String> send;
 
     public static void main(String[] args) {
 
         Scanner leia = new Scanner(System.in);
-        String[] baseCode = {"USD", "BRL", "JPY", "EUR", "ARS", "AUD"};
+        String[][] pares = {
+                {"USD", "BRL"},
+                {"BRL", "JPY"},
+                {"JPY", "EUR"},
+                {"EUR", "ARS"},
+                {"ARS", "AUD"},
+                {"AUD", "USD"}
+        };
         var escolha = 0;
 
         while (escolha != 7) {
@@ -37,40 +43,38 @@ public class Main {
                     """);
             System.out.println("Escolha uma opção: ");
             escolha = leia.nextInt();
-            if (!(escolha < 1 || escolha > 7)) {
-                if (!(escolha == 7)){
-                    System.out.println("Digite o valor em " + baseCode[escolha - 1] + ":");
-                    int valor = leia.nextInt();
-                    URI endereco;
-                    if(escolha == 6){
-                        endereco = URI.create("https://v6.exchangerate-api.com/v6/12d36bdbdea56dbc87200e92/pair/" + baseCode[escolha - 1] + "/" + baseCode[0]);
-                        converterValor(endereco, valor);
-                    }else{
-                        endereco = URI.create("https://v6.exchangerate-api.com/v6/12d36bdbdea56dbc87200e92/pair/" + baseCode[escolha - 1] + "/" + baseCode[escolha]);
-                        converterValor(endereco, valor);
-                    }
-                }
-            } else {
+            if (escolha >= 1 && escolha <= 6) {
+                String origem = pares[escolha - 1][0];
+                String destino = pares[escolha - 1][1];
+
+                System.out.print("Digite o valor em " + origem + ": ");
+                double valor = leia.nextDouble();
+
+                URI endereco = URI.create("https://v6.exchangerate-api.com/v6/12d36bdbdea56dbc87200e92/pair/" + origem + "/" + destino);
+                converterValor(endereco, valor, origem, destino);
+            } else if (escolha != 7) {
                 System.out.println("Escolha uma opção válida!");
             }
         }
 
     }
-    
-    private static void converterValor(URI endereco, int primeiroValor) {
+
+    private static void converterValor(URI endereco, double valor, String origem, String destino) {
         try {
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(endereco)
                     .build();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            MoedaConversor converter = gson.fromJson(response.body(), MoedaConversor.class);
-            double resultado = primeiroValor * converter.conversion_rate();
-            System.out.println("Valor convertido: " + resultado);
+            MoedaConversor conversor = gson.fromJson(response.body(), MoedaConversor.class);
+
+            double resultado = valor * conversor.conversion_rate();
+            System.out.printf("💱 %.2f %s = %.2f %s\n", valor, origem, resultado, destino);
         } catch (IOException | InterruptedException e) {
-            System.out.println(e.getMessage());
+            System.out.println("Erro ao converter moeda: " + e.getMessage());
         }
     }
-    
+
 }
