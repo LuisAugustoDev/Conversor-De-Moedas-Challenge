@@ -50,7 +50,7 @@ public class Main {
                 System.out.print("Digite o valor em " + origem + ": ");
                 double valor = leia.nextDouble();
 
-                URI endereco = URI.create("https://v6.exchangerate-api.com/v6/12d36bdbdea56dbc87200e92/pair/" + origem + "/" + destino);
+                URI endereco = URI.create("String url = "https://v6.exchangerate-api.com/v6/YOUR_API_KEY_HERE/pair/" + origem + "/" + destino);
                 converterValor(endereco, valor, origem, destino);
             } else if (escolha != 7) {
                 System.out.println("Escolha uma opção válida!");
